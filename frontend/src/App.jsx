@@ -1,25 +1,33 @@
 import { useEffect, useState } from 'react';
 
 function App() {
-  const [message, setMessage] = useState("Connecting...");
+  const [workouts, setWorkouts] = useState([]);
   const [exercise, setExercise] = useState("");
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
 
-  // runs once on load to verify the connection
+  const fetchWorkouts = async () => {
+    const res = await fetch("http://127.0.0.1:5000/api/workouts");
+    const data = await res.json();
+    setWorkouts(data);
+  };
+
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/test")
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((error) => {
-        console.error("Fetch error:", error);
-        setMessage("Backend not found. Check if app.py is running!");
-      });
+    const fetchWorkouts = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/workouts");
+      const data = await res.json();
+      setWorkouts(data);
+    } catch (error) {
+      console.error("Error fetching:", error);
+    }
+  };
+
+  fetchWorkouts();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     await fetch("http://127.0.0.1:5000/api/workouts", {
       method: "POST",
       headers: { "Content-Type": "application/json"},
@@ -34,13 +42,23 @@ function App() {
     setExercise("");
     setReps("");
     setWeight("");
+
+    fetchWorkouts();
+  };
+
+  const deleteWorkout = async (id) => {
+    await fetch(`http://127.0.0.1:5000/api/workouts/${id}`, {
+      method: "DELETE"
+    });
+    
+    fetchWorkouts();
   };
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif' }}>
       <h1>Workout Tracker</h1>
-      <p style={{ color: '#646cff' }}>{message}</p>
 
+      {/* Information and Submit */}
       <form onSubmit={handleSubmit} style={{ display: 'inline-block', textAlign: 'left' }}>
         <label>Exercise:</label><br />
         <input 
@@ -68,6 +86,46 @@ function App() {
           Log Workout
         </button>
       </form>
+
+      <hr />
+
+      {/* Logged Workouts Section */}
+      <h2>Logged Workouts</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {workouts.map((w) => (
+          <div key={w.id} style={{ 
+            border: '1px solid #ccc', 
+            margin: '5px', 
+            padding: '15px', 
+            width: '350px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderRadius: '8px'
+          }}>
+            <div style={{ textAlign: 'left' }}>
+              <strong style={{ fontSize: '1.1rem' }}>{w.exercise_name}</strong><br />
+              <span style={{ color: '#666' }}>{w.reps} reps @ {w.weight} lbs</span>
+            </div>
+
+            {/* The Delete Button */}
+            <button 
+              onClick={() => deleteWorkout(w.id)} 
+              style={{ 
+                backgroundColor: '#ff4d4d', 
+                color: 'white', 
+                border: 'none', 
+                padding: '8px 12px', 
+                borderRadius: '5px', 
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ supabase = create_client(url, key)
 def test_api():
     return jsonify({"message": "Hello Jeremy! The clean slate is ready."})
 
-# route to save a note
+# route to save a workout
 @app.route('/api/workouts', methods=['POST'])
 def add_workout():
     data = request.json
@@ -31,8 +31,17 @@ def add_workout():
         "reps": reps,
         "weight": weight
     }).execute()
-
     return jsonify({"message": "Workout logged"})
+
+@app.route('/api/workouts', methods=['GET'])
+def get_workouts():
+    response = supabase.table('workouts').select('*').order('created_at', desc = True).execute()
+    return jsonify(response.data)
+
+@app.route('/api/workouts/<int:workout_id>', methods=['DELETE'])
+def delete_workout(workout_id):
+    supabase.table('workouts').delete().eq('id', workout_id).execute()
+    return jsonify({"message": "Workout deleted"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
