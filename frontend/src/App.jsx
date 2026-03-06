@@ -5,11 +5,16 @@ function App() {
   const [exercise, setExercise] = useState("");
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   const fetchWorkouts = async () => {
-    const res = await fetch("http://127.0.0.1:5000/api/workouts");
-    const data = await res.json();
-    setWorkouts(data);
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/workouts");
+      const data = await res.json();
+      setWorkouts(data);
+    } catch (error) {
+      console.error("Error fetching:", error);
+    }
   };
 
   useEffect(() => {
@@ -34,7 +39,8 @@ function App() {
       body: JSON.stringify({
         exercise_name: exercise,
         reps: parseInt(reps),
-        weight: parseInt(weight)
+        weight: parseInt(weight),
+        workout_date: date
       })
     });
 
@@ -82,6 +88,13 @@ function App() {
           onChange={(e) => setWeight(e.target.value)} 
         /><br /><br />
 
+        <label>Date:</label><br />
+        <input 
+          type="date" 
+          value={date} 
+          onChange={(e) => setDate(e.target.value)} 
+        /><br /><br />
+
         <button type="submit" style={{ width: '100%', padding: '10px' }}>
           Log Workout
         </button>
@@ -105,7 +118,8 @@ function App() {
           }}>
             <div style={{ textAlign: 'left' }}>
               <strong style={{ fontSize: '1.1rem' }}>{w.exercise_name}</strong><br />
-              <span style={{ color: '#666' }}>{w.reps} reps @ {w.weight} lbs</span>
+              <span style={{ color: '#666' }}>{w.reps} reps @ {w.weight} lbs</span><br />
+              <span>{w.workout_date ? new Date(w.workout_date.replace(/-/g, '/')).toLocaleDateString() : "No Date"}</span>
             </div>
 
             {/* The Delete Button */}

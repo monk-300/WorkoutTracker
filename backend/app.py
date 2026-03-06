@@ -25,11 +25,13 @@ def add_workout():
     exercise = data.get('exercise_name')
     reps = data.get('reps')
     weight = data.get('weight')
+    date = data.get('workout_date')
 
     supabase.table('workouts').insert({
         "exercise_name": exercise,
         "reps": reps,
-        "weight": weight
+        "weight": weight,
+        "workout_date": date
     }).execute()
     return jsonify({"message": "Workout logged"})
 
